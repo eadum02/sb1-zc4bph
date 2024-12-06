@@ -1,0 +1,134 @@
+import React, { useState } from 'react';
+import { Dialog } from '@headlessui/react';
+import { X } from 'lucide-react';
+import { useBudgetStore } from '../store/budgetStore';
+import { format } from 'date-fns';
+
+interface EditSavingsGoalModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  goalId: string;
+}
+
+export const EditSavingsGoalModal: React.FC<EditSavingsGoalModalProps> = ({
+  isOpen,
+  onClose,
+  goalId,
+}) => {
+  const { savingsGoals, updateSavingsGoal } = useBudgetStore();
+  const goal = savingsGoals.find(g => g.id === goalId);
+
+  if (!goal) return null;
+
+  const [name, setName] = useState(goal.name);
+  const [targetAmount, setTargetAmount] = useState(goal.targetAmount.toString());
+  const [currentAmount, setCurrentAmount] = useState(goal.currentAmount.toString());
+  const [deadline, setDeadline] = useState(format(goal.deadline, 'yyyy-MM-dd'));
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateSavingsGoal(goalId, {
+      name,
+      targetAmount: parseFloat(targetAmount),
+      currentAmount: parseFloat(currentAmount),
+      deadline: new Date(deadline),
+    });
+    onClose();
+  };
+
+  return (
+    <Dialog open={isOpen} onClose={onClose} className="relative z-50">
+      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+      
+      <div className="fixed inset-0 flex items-center justify-center p-4">
+        <Dialog.Panel className="bg-white rounded-2xl p-6 w-full max-w-md">
+          <div className="flex justify-between items-center mb-6">
+            <Dialog.Title className="text-xl font-semibold">
+              Edit Savings Goal
+            </Dialog.Title>
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+              <X size={20} />
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Goal Name
+              </label>
+              <input
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="e.g., New Car"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Target Amount
+              </label>
+              <input
+                type="number"
+                required
+                min="0"
+                step="0.01"
+                value={targetAmount}
+                onChange={(e) => setTargetAmount(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="0.00"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Current Amount
+              </label>
+              <input
+                type="number"
+                required
+                min="0"
+                step="0.01"
+                value={currentAmount}
+                onChange={(e) => setCurrentAmount(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="0.00"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Target Date
+              </label>
+              <input
+                type="date"
+                required
+                value={deadline}
+                onChange={(e) => setDeadline(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="submit"
+                className="flex-1 py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Save Changes
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 py-2 px-4 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </Dialog.Panel>
+      </div>
+    </Dialog>
+  );
+};
